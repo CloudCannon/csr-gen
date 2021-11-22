@@ -2,13 +2,12 @@ var csrgen = require('./src/csr-gen');
 
 console.log('Generating CSR');
 
-csrgen('foobar.com', {
+csrgen(['foobar.com','www.foobar.com','app.foobar.com'], {
   destroy: true,
   read: true,
   outputDir: __dirname,
   company: 'FooBar',
-  email: 'info@foobar.biz',
-  password: 'asdf'
+  email: 'info@foobar.biz'
 }, function(err, a){
 
   if(err) return console.log('Something went wrong!');

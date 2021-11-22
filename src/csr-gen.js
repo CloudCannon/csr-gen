@@ -42,7 +42,13 @@ var createSubjectString = function(options) {
 	return subj;
 };
 
-module.exports = function(domain, options, callback){
+module.exports = function(domains, options, callback){
+	const domain = domains[0];
+	let altDomains = [];
+	if (domains.length > 1)
+	{
+		altDomains = domains.slice(1);
+	}
 
 	callback || (callback = function(){});
 
@@ -79,6 +85,11 @@ module.exports = function(domain, options, callback){
 		'-out', csrPath,
 		'-subj', subj
 	];
+	
+	if (altDomains.length > 0)
+	{
+		opts.push('-addext', `subjectAltName = ${altDomains.map(el => `DNS:${el}`).join(',')}`)
+	}
 
 	var passFile = options.password != '' ? "pass.txt" : false;
 
