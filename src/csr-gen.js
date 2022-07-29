@@ -1,32 +1,10 @@
 var s = require('child_process').spawn;
-var _ = require('underscore');
 var fs = require('fs');
 var os = require('os');
-_.str = require('underscore.string');
-_.mixin(_.str.exports());
 
-_.mixin({
-	endsWith: function(a, b){
-	    var lastIndex = a.lastIndexOf(b);
-	    return (lastIndex != -1) && (lastIndex + b.length == a.length);
-	},
-	contains: function(s, a){
-		s = ''+s;
-		return s.lastIndexOf(a) != -1;
-	},
-	log: function(a){
-		if(process.env.VERBOSE) console.log('csr-gen: '+a);
-	}
-});
-_.mixin({
-	containsAny: function(s, a){
-		var result = false;
-		_.each(a, function(a){
-			if(_.contains(s, a)) result = true; 
-		});
-		return result;
-	}
-});
+const log = (a) => {
+	if(process.env.VERBOSE) console.log('csr-gen: '+a);
+}
 
 var createSubjectString = function(options) {
 
@@ -54,7 +32,7 @@ module.exports = function(domains, options, callback){
 
 	options || (options = {});
 	if(!options.outputDir) options.outputDir = os.tmpdir();
-	if(!_.endsWith(options.outputDir, '/')) options.outputDir += '/';
+	if(!options.outputDir.endsWith('/')) options.outputDir += '/';
 	if(!options.company) options.company = domain;
 	if(!options.country) options.country = 'US';
 	if(!options.state) options.state = 'California';
@@ -76,7 +54,7 @@ module.exports = function(domains, options, callback){
 
 	var subj = createSubjectString(options);
 
-	_.log("Subj: " + subj);
+	log("Subj: " + subj);
 
 	var opts = [
 		'req',
@@ -96,7 +74,7 @@ module.exports = function(domains, options, callback){
 	if (passFile) {
 		fs.writeFile(passFile, options.password, function(err) {
 			if(err) {
-				_.log("Error saving password to temp file: " + err);
+				log("Error saving password to temp file: " + err);
 			}
 		});
 		opts.push('-passout');
@@ -108,17 +86,17 @@ module.exports = function(domains, options, callback){
 	var openssl = s('openssl', opts);
 
 	function inputText(a){
-		_.log('writing: '+a)
+		log('writing: '+a)
 		openssl.stdin.write(a+'\n');
 	}
 
 	openssl.stdout.on('data', function(a){
-		_.log('stdout:'+a);
+		log('stdout:'+a);
 	});
 
 	openssl.on('exit',function(){
 		if(passFile) fs.unlink(passFile);
-		_.log('exited');
+		log('exited');
 		if(read){
 			fs.readFile(keyPath, {encoding: 'utf8'}, function(err, key){
 				if(destroy) fs.unlink(keyPath, function(err){
@@ -140,8 +118,8 @@ module.exports = function(domains, options, callback){
 	});
 
 	openssl.stderr.on('data',function(line){
-		line = _.trim(line);
+		line = line.toString('utf8').trim();
 		if (line && line != '.' && line != '+' && line != '-----')
-			_.log('openssl: ' + line);
+			log('openssl: ' + line);
 	});
 };
